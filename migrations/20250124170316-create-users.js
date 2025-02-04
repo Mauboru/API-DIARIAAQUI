@@ -26,9 +26,14 @@ module.exports = {
         type: Sequelize.STRING(20),
         allowNull: false,
       },
-      user_type: {
-        type: Sequelize.ENUM('employer', 'worker'),
+      cpfOrCnpj: {
+        type: Sequelize.STRING(255),
         allowNull: false,
+        unique: true
+      },
+      profileImage: {
+        type: Sequelize.INTEGER,
+        allowNull: true
       },
       createdAt: {
         type: Sequelize.DATE,

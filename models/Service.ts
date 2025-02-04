@@ -1,6 +1,6 @@
 import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../instances/mysql';
-import { User } from './User'; 
+import { sequelize } from '../src/instances/mysql';
+import { User } from '../src/models/User';
 
 interface ServiceAttributes {
   id?: number;
@@ -9,7 +9,7 @@ interface ServiceAttributes {
   description: string;
   location: string;
   date: Date;
-  pay: string; 
+  pay: string;
   status: 'open' | 'in_progress' | 'completed';
   createdAt?: Date;
   updatedAt?: Date;
@@ -29,7 +29,6 @@ export class Service extends Model<ServiceAttributes> implements ServiceAttribut
 
   public static associate() {
     this.belongsTo(User, { foreignKey: 'employer_id' });
-    // Aqui você pode adicionar o relacionamento com Feedback, caso o modelo de Feedback já exista.
   }
 }
 

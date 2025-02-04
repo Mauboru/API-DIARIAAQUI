@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as UserController from "../controllers/userController";
+import * as ServiceController from "../controllers/serviceController";
 const router = Router();
 
 router.post("/login", UserController.login); 
@@ -8,5 +9,7 @@ router.put("/updateUser", UserController.updateUser);
 
 router.get("/users", UserController.getUserData); 
 router.put("/updatePassword", UserController.updatePassword); 
+
+router.post("/registerService", ServiceController.registerService); 
 
 export default router;
