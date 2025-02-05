@@ -1,27 +1,15 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../instances/mysql';
-import { User } from './User'; 
+import { User } from './User';
 
-interface ServiceAttributes {
-  id?: number;
-  employer_id: number;
-  title: string;
-  description: string;
-  location: string;
-  date: Date;
-  pay: string; 
-  status: 'open' | 'in_progress' | 'completed';
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export class Service extends Model<ServiceAttributes> implements ServiceAttributes {
+export class Service extends Model{
   public id!: number;
   public employer_id!: number;
   public title!: string;
   public description!: string;
   public location!: string;
-  public date!: Date;
+  public date_initial!: Date;
+  public date_final!: Date;
   public pay!: string;
   public status!: 'open' | 'in_progress' | 'completed';
   public readonly createdAt!: Date;
@@ -29,7 +17,6 @@ export class Service extends Model<ServiceAttributes> implements ServiceAttribut
 
   public static associate() {
     this.belongsTo(User, { foreignKey: 'employer_id' });
-    // Aqui você pode adicionar o relacionamento com Feedback, caso o modelo de Feedback já exista.
   }
 }
 
@@ -51,7 +38,11 @@ Service.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    date: {
+    date_initial: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    date_final: {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },

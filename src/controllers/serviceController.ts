@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { Service } from '../models/Service';
-import { User } from '../models/User';
 import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
+import { Service } from '../models/Service';
 
 export const registerService = async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -17,19 +17,20 @@ export const registerService = async (req: Request, res: Response): Promise<Resp
             return res.status(404).json({ message: 'Usuário não encontrado.' });
         }
 
-        const { title, description, location, date, pay, status } =  req.body;
+        const { title, description, location, date_initial, date_final, pay, status } =  req.body;
 
-        if (!title || !description || !location || !date || !date || !pay) return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+        if (!title || !description || !location || !date_initial || !date_final || !pay) return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
         
         const newService = await Service.create({
             employer_id: user.id,
-            title,
-            description,
-            location,
-            date,  
-            pay,
-            status
-        });
+            title: title,
+            description: description,
+            location: location,
+            date_initial: date_initial,
+            date_final: date_final,
+            pay: pay,
+            status: status
+        })
         return res.status(201).json({
             message: 'Serviço criado com sucesso.',
             service: { id: newService.id, name: newService.title },
