@@ -11,5 +11,6 @@ router.get("/users", UserController.getUserData);
 router.put("/updatePassword", UserController.updatePassword); 
 
 router.post("/registerService", ServiceController.registerService); 
+router.get("/getService", ServiceController.getService); 
 
 export default router;

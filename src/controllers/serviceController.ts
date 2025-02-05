@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { Service } from '../models/Service';
 
-export const registerService = async (req: Request, res: Response): Promise<Response> => {
+export const registerService = async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
@@ -40,3 +40,18 @@ export const registerService = async (req: Request, res: Response): Promise<Resp
         return res.status(500).json({ message: 'Erro interno do servidor.' })
     }
 }
+
+export const getService = async (req: Request, res: Response) => {
+    try {
+        const services = await Service.findAll();
+
+        if (!services || services.length === 0) {
+            return res.status(404).json({ message: 'Nenhum serviço encontrado.' });
+        }
+
+        return res.status(200).json({ services });
+    } catch (error) {
+        console.log("Erro ao buscar serviços", error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+};
