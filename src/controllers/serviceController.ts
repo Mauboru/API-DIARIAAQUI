@@ -19,7 +19,19 @@ export const registerService = async (req: Request, res: Response) => {
 
         const { title, description, location, date_initial, date_final, pay, status } =  req.body;
 
-        if (!title || !description || !location || !date_initial || !date_final || !pay) return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+        if (!title || !description || !location || !date_initial || !date_final || !pay){ 
+            return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+        }
+
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(date_initial) || !dateRegex.test(date_final)) {
+            return res.status(400).json({ message: 'Formato de data inválido. Use YYYY-MM-DD.' });
+        }
+
+        const paymentValue = parseFloat(pay.toString().replace(',', '.'));
+        if (isNaN(paymentValue) || paymentValue <= 0) {
+            return res.status(400).json({ message: 'O pagamento deve ser um valor maior que 0.' });
+        }
         
         const newService = await Service.create({
             employer_id: user.id,
