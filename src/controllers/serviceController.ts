@@ -24,8 +24,13 @@ export const registerService = async (req: Request, res: Response) => {
         }
 
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateRegex.test(date_initial) || !dateRegex.test(date_final)) {
-            return res.status(400).json({ message: 'Formato de data inválido. Use YYYY-MM-DD.' });
+        function isValidDate(dateString: string): boolean {
+            if (!dateRegex.test(dateString)) return false;
+            const date = new Date(dateString);
+            return !isNaN(date.getTime());
+        }
+        if (!isValidDate(date_initial) || !isValidDate(date_final)) {
+            return res.status(400).json({ message: 'Formato de data inválido ou data inexistente. Use YYYY-MM-DD.' });
         }
 
         const paymentValue = parseFloat(pay.toString().replace(',', '.'));
