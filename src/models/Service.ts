@@ -14,10 +14,6 @@ export class Service extends Model{
   public status!: 'open' | 'in_progress' | 'completed';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
-
-  public static associate() {
-    this.belongsTo(User, { foreignKey: 'employer_id' });
-  }
 }
 
 Service.init(
@@ -62,3 +58,5 @@ Service.init(
     timestamps: true,
   }
 );
+
+Service.belongsTo(User, { foreignKey: 'employer_id', as: 'employer' });
