@@ -66,7 +66,7 @@ export const getService = async (req: Request, res: Response) => {
                 {
                     model: User,
                     as: 'employer',
-                    attributes: ['name'],
+                    attributes: ['id', 'name'],
                 },
             ],
         });
