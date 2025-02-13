@@ -5,26 +5,18 @@ const { cpf, cnpj } = require('cpf-cnpj-validator');
 import { parsePhoneNumber } from 'libphonenumber-js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import twilio from 'twilio';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = twilio(accountSid, authToken);
 
 export const login = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { emailOrName, password } = req.body;
+    const { cpfOrCnpjOrName, password } = req.body;
 
-    if (!emailOrName || !password) {
+    if (!cpfOrCnpjOrName || !password) {
       return res.status(400).json({ message: 'Email/Usuario e senha são obrigatórios.' });
     }
 
     const user = await User.findOne({ 
       where: { 
-        [Op.or]: [{ email: emailOrName }, { name: emailOrName }] 
+        [Op.or]: [{ cpfOrCnpj: cpfOrCnpjOrName }, { name: cpfOrCnpjOrName }] 
       }
     });
 
@@ -48,6 +40,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       message: 'Login bem-sucedido.',
       token: token,
       user: { id: user.id, name: user.name, email: user.email },
+      // Ver exatamente o que deve ser retornado para o front
     });
   } catch (error) {
     console.error(error);
@@ -98,12 +91,6 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
       phone_number,
       cpforCnpj,  
       profileImage: randomImageIndex,
-    });
-
-    await client.messages.create({
-      body: `Novo cadastro: ${newUser.name} (${newUser.email}) com o CPF/CNPJ ${newUser.cpforCnpj}`,
-      from: 'whatsapp:+14155238886',
-      to: 'whatsapp:+554184987049',
     });
 
     return res.status(201).json({
