@@ -10,6 +10,8 @@ export class User extends Model {
   public phone_number!: string;
   public cpforCnpj!: string; 
   public profileImage!: number; 
+  public verified_phone!: boolean;
+  public code_phone!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -57,6 +59,15 @@ User.init(
     profileImage: {
       type: DataTypes.INTEGER,
       allowNull: false, 
+    },
+    verified_phone: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    code_phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

@@ -12,19 +12,41 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
 
 dotenv.config();
 
-export const sendVerificationCode = async (req: Request, res: Response) => {
+export const sendVerificationCode = async (phoneNumber: string, code: string) => {
   try {
-    const { code, phoneNumber } = req.body;
-
     await client.messages.create({
-        body: `Seu código de verificação: ${code}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: phoneNumber,
+      body: `Seu código de verificação: ${code}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phoneNumber,
     });
-    return res.status(200).json({ message: 'Código enviado com sucesso.' });
+
+    console.log('Código enviado com sucesso para', phoneNumber);
+    return true;
   } catch (error) {
-    console.error('Erro ao enviar SMS:', error);
-    return res.status(500).json({ message: 'Erro ao enviar código de verificação.' });
+    console.error('Erro ao enviar SMS ou atualizar código de telefone:', error);
+    return false;
+  }
+};
+
+export const verificationUserPhoneCode = async (req: Request, res: Response) => {
+  try {
+    const { code, phone_number } = req.body;
+
+    if (!code || !phone_number) {
+      return res.status(400).json({ message: 'Código e número de telefone são obrigatórios.' });
+    }
+
+    const user = await User.findOne({ where: { phone_number } });
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado com esse número de telefone.' });
+    if (user.code_phone !== code) return res.status(400).json({ message: 'Código de verificação incorreto.' });
+
+    user.verified_phone = true;
+    await user.save();
+
+    return res.status(200).json({ message: 'Telefone verificado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao verificar código do telefone:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
 
@@ -65,7 +87,6 @@ export const login = async (req: Request, res: Response) => {
       // Ver exatamente o que deve ser retornado para o front
     });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
@@ -87,8 +108,8 @@ export const registerUser = async (req: Request, res: Response) => {
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     if (!emailPattern.test(email)) return res.status(400).json({ message: 'Email inválido.' });
 
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: 'Este e-mail já está registrado.' });
+    const existingEmail = await User.findOne({ where: { email } });
+    if (existingEmail) return res.status(400).json({ message: 'Este e-mail já está registrado.' });
 
     try {
       const phonePattern = parsePhoneNumber(phone_number, 'BR');
@@ -101,26 +122,25 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,20}$/;
     if (!passwordPattern.test(password)) return res.status(400).json({ message: 'Senha muito fraca!' })
-
+    
     const password_hash = await bcrypt.hash(password, 10);
-
     const randomImageIndex = Math.floor(Math.random() * 10) + 1;
 
-    const newUser = await User.create({
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    sendVerificationCode(phone_number, code);
+
+    User.create({
       name,
       email,
       password_hash,
       phone_number,
+      code_phone: code,
       cpforCnpj,  
       profileImage: randomImageIndex,
     });
 
-    return res.status(201).json({
-      message: 'Usuário criado com sucesso.',
-      user: { id: newUser.id, name: newUser.name, email: newUser.email },
-    });
+    return res.status(201).json({ message: 'Usuário criado com sucesso.' });
   } catch (error) {
-    console.error('Erro no cadastro do usuário:', error);
     return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
@@ -182,8 +202,8 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 
     if (email && email !== user.email) {
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
+      const existingEmail = await User.findOne({ where: { email } });
+      if (existingEmail) {
         return res.status(400).json({ message: 'Este email já está registrado.' });
       }
     }

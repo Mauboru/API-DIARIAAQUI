@@ -35,6 +35,15 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true
       },
+      verified_phone: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      code_phone: {
+        type: Sequelize.STRING(4),
+        allowNull: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

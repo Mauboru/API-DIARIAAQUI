@@ -7,7 +7,7 @@ router.post("/login", UserController.login);
 router.post("/registerUser", UserController.registerUser); 
 router.put("/updateUser", UserController.updateUser); 
 
-router.post("/sendVerificationCode", UserController.sendVerificationCode); 
+router.post("/verificationUserPhoneCode", UserController.verificationUserPhoneCode); 
 
 router.get("/users", UserController.getUserData); 
 router.put("/updatePassword", UserController.updatePassword); 
