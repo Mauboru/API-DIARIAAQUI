@@ -1,12 +1,34 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { Op } from 'sequelize';
-const { cpf, cnpj } = require('cpf-cnpj-validator');
 import { parsePhoneNumber } from 'libphonenumber-js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import twilio from 'twilio';
+import dotenv from 'dotenv';
 
-export const login = async (req: Request, res: Response): Promise<Response> => {
+const { cpf, cnpj } = require('cpf-cnpj-validator');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+dotenv.config();
+
+export const sendVerificationCode = async (req: Request, res: Response) => {
+  try {
+    const { code, phoneNumber } = req.body;
+
+    await client.messages.create({
+        body: `Seu código de verificação: ${code}`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phoneNumber,
+    });
+    return res.status(200).json({ message: 'Código enviado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao enviar SMS:', error);
+    return res.status(500).json({ message: 'Erro ao enviar código de verificação.' });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
   try {
     const { cpfOrCnpjOrName, password } = req.body;
 
@@ -48,7 +70,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export const registerUser = async (req: Request, res: Response): Promise<Response> => {
+export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password, phone_number, cpforCnpj } = req.body;
 
@@ -103,7 +125,7 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
   }
 };
 
-export const getUserData = async (req: Request, res: Response): Promise<Response> => {
+export const getUserData = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
@@ -126,7 +148,7 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
   }
 };
 
-export const updateUser = async (req: Request, res: Response): Promise<Response> => {
+export const updateUser = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
@@ -194,7 +216,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
   }
 };
 
-export const updatePassword = async (req: Request, res: Response): Promise<Response> => {
+export const updatePassword = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
@@ -221,8 +243,7 @@ export const updatePassword = async (req: Request, res: Response): Promise<Respo
     await user.save();
 
     return res.status(200).json({
-      message: 'Senha atualizada com sucesso.',
-      user: { password_hash: user.password_hash },
+      message: 'Senha atualizada com sucesso.'
     });
   } catch (error) {
     console.error('Erro ao atualizar senha:', error);
