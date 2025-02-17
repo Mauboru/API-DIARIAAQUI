@@ -43,7 +43,7 @@ export const verificationUserPhoneCode = async (req: Request, res: Response) => 
     user.verified_phone = true;
     await user.save();
 
-    return res.status(200).json({ message: 'Telefone verificado com sucesso.' });
+    return res.status(201).json({ message: 'Telefone verificado com sucesso.' });
   } catch (error) {
     console.error('Erro ao verificar código do telefone:', error);
     return res.status(500).json({ message: 'Erro interno do servidor.' });
