@@ -120,6 +120,9 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Número de telefone inválido.' });
     }
 
+    const existingPhoneNumber = await User.findOne({ where: { phone_number } });
+    if (existingPhoneNumber) return res.status(400).json({ message: 'Este numero já está registrado.' });
+
     const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,20}$/;
     if (!passwordPattern.test(password)) return res.status(400).json({ message: 'Senha muito fraca!' })
     
