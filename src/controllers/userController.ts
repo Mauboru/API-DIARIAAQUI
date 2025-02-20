@@ -12,19 +12,59 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
 
 dotenv.config();
 
-export const sendVerificationCode = async (phoneNumber: string, code: string) => {
+export const sendVerificationCode = async (phone_number: string) => {
   try {
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
     await client.messages.create({
       body: `Seu código de verificação: ${code}`,
       from: process.env.TWILIO_PHONE_NUMBER,
-      to: phoneNumber,
+      to: phone_number,
+    });
+    const user = await User.findOne({ where: { phone_number } });
+    if (!user) return { success: false, code: null, message: "Usuário não encontrado" };
+
+    user.code_phone = code;
+    await user.save();
+
+    return { success: true, code };
+  } catch (error) {
+    return { success: false, code: null, message: error };
+  }
+};
+
+export const sendVerificationCodeAPI = async (req: Request, res: Response) => {
+  try {
+    const { phone_number } = req.body;
+
+    if (!phone_number) {
+      return res.status(400).json({ message: "Número de telefone é obrigatório." });
+    }
+
+    if (!process.env.TWILIO_PHONE_NUMBER) {
+      return res.status(500).json({ message: "Número do Twilio não configurado." });
+    }
+
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+    await client.messages.create({
+      body: `Seu código de verificação: ${code}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone_number,
     });
 
-    console.log('Código enviado com sucesso para', phoneNumber);
-    return true;
+    const user = await User.findOne({ where: { phone_number } });
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    user.code_phone = code;
+    await user.save();
+
+    return res.status(201).json({ message: "Código enviado com sucesso." });
   } catch (error) {
-    console.error('Erro ao enviar SMS ou atualizar código de telefone:', error);
-    return false;
+    console.error("Erro ao enviar código de verificação:", error);
+    return res.status(500).json({ message: "Erro interno ao processar a solicitação." });
   }
 };
 
@@ -128,16 +168,14 @@ export const registerUser = async (req: Request, res: Response) => {
     
     const password_hash = await bcrypt.hash(password, 10);
     const randomImageIndex = Math.floor(Math.random() * 10) + 1;
-
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    sendVerificationCode(phone_number, code);
+    
+    sendVerificationCode(phone_number);
 
     User.create({
       name,
       email,
       password_hash,
       phone_number,
-      code_phone: code,
       cpforCnpj,  
       profileImage: randomImageIndex,
     });
