@@ -3,9 +3,9 @@ import { User } from '../models/User';
 import bcrypt from 'bcrypt';
 import { sendVerificationCodeService } from '../services/twilioService';
 import { Op } from 'sequelize';
-import { generateToken } from '../services/authService';
+import { generateToken, verifyToken } from '../services/authService';
 
-export const register = async (req: Request, res: Response) => {
+/*✅*/ export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password, phone_number, cpf_or_cnpj } = req.body;
 
@@ -40,10 +40,10 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const deactivate = async (req: Request, res: Response) => {
+/*❌*/ export const deactivate = async (req: Request, res: Response) => {
 };
 
-export const login = async (req: Request, res: Response) => {
+/*✅*/ export const login = async (req: Request, res: Response) => {
   try {
     const { cpf_or_cnpj_or_email, password } = req.body;
 
@@ -76,98 +76,77 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// export const getUserData = async (req: Request, res: Response) => {
-//   try {
-//     const token = req.headers.authorization?.split(' ')[1];
-//     if (!token) {
-//       return res.status(401).json({ message: 'Token ausente.' });
-//     }
+/*✅*/ export const get = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Token ausente.' });
 
-//     const decoded: any = jwt.verify(token, 'sua_chave_secreta');
-//     const user = await User.findByPk(decoded.id);
+    const decoded = verifyToken(token);
+    if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
 
-//     if (!user) {
-//       return res.status(404).json({ message: 'Usuário não encontrado.' });
-//     }
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-//     const { password_hash, id, createdAt, updatedAt, ...userData } = user.toJSON();
+    const { password_hash, createdAt, updatedAt, phone_number, ...userData } = user.toJSON();
+    return res.status(200).json({
+      ...userData,
+      phone_number: phone_number ? phone_number.slice(3) : null,
+  });
+    
+  } catch (error) {
+    console.error('Erro ao buscar dados do usuário:', error);
+    return res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
 
-//     return res.status(200).json(userData);
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: 'Erro no servidor.' });
-//   }
-// };
+/*❌*/ export const getById = async (req: Request, res: Response) => {
+};
 
-// export const updateUser = async (req: Request, res: Response) => {
-//   try {
-//     const token = req.headers.authorization?.split(' ')[1];
-//     if (!token) {
-//       return res.status(401).json({ message: 'Token ausente.' });
-//     }
+/*✅*/ export const update = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Token ausente.' });
 
-//     const decoded: any = jwt.verify(token, 'sua_chave_secreta');
-//     const userId = decoded.id;
+    const decoded = verifyToken(token);
+    if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
 
-//     const user = await User.findByPk(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: 'Usuário não encontrado.' });
-//     }
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-//     const { name, email, phone_number, cpforCnpj } = req.body;
+    const { name, email, phone_number, cpf_or_cnpj } = req.body;
 
-//     if (cpforCnpj && !(cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj))) {
-//       return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
-//     }
+    if (cpf_or_cnpj && cpf_or_cnpj !== user.cpf_or_cnpj) {
+      const existingCpfOrCnpj = await User.findOne({ where: { cpf_or_cnpj } });
+      if (existingCpfOrCnpj) {
+        return res.status(400).json({ message: 'Este CPF/CNPJ já está registrado.' });
+      }
+    }
 
-//     if (cpforCnpj && cpforCnpj !== user.cpforCnpj) {
-//       const existingCpfOrCnpj = await User.findOne({ where: { cpforCnpj } });
-//       if (existingCpfOrCnpj) {
-//         return res.status(400).json({ message: 'Este CPF/CNPJ já está registrado.' });
-//       }
-//     }
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ where: { email } });
+      if (existingEmail) {
+        return res.status(400).json({ message: 'Este email já está registrado.' });
+      }
+    }
 
-//     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-//     if (email && !emailPattern.test(email)) {
-//       return res.status(400).json({ message: 'Email inválido.' });
-//     }
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.phone_number = phone_number || user.phone_number;
+    user.cpf_or_cnpj = cpf_or_cnpj || user.cpf_or_cnpj;
 
-//     if (email && email !== user.email) {
-//       const existingEmail = await User.findOne({ where: { email } });
-//       if (existingEmail) {
-//         return res.status(400).json({ message: 'Este email já está registrado.' });
-//       }
-//     }
+    await user.save();
 
-//     if (phone_number) {
-//       try {
-//         const phonePattern = parsePhoneNumber(phone_number, 'BR');
-//         if (!phonePattern.isValid()) {
-//           return res.status(400).json({ message: 'Número de telefone inválido.' });
-//         }
-//       } catch (err) {
-//         return res.status(400).json({ message: 'Número de telefone inválido.' });
-//       }
-//     }
+    return res.status(200).json({
+      message: 'Usuário atualizado com sucesso.',
+      user: { id: user.id, name: user.name, email: user.email, phone_number: user.phone_number },
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
 
-//     user.name = name || user.name;
-//     user.email = email || user.email;
-//     user.phone_number = phone_number || user.phone_number;
-//     user.cpforCnpj = cpforCnpj || user.cpforCnpj;
-
-//     await user.save();
-
-//     return res.status(200).json({
-//       message: 'Usuário atualizado com sucesso.',
-//       user: { id: user.id, name: user.name, email: user.email, phone_number: user.phone_number },
-//     });
-//   } catch (error) {
-//     console.error('Erro ao atualizar usuário:', error);
-//     return res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// };
-
-// export const updatePassword = async (req: Request, res: Response) => {
+// /*❌*/ export const updatePassword = async (req: Request, res: Response) => {
 //   try {
 //     const token = req.headers.authorization?.split(' ')[1];
 //     if (!token) {
@@ -202,7 +181,7 @@ export const login = async (req: Request, res: Response) => {
 //   }
 // };
 
-// export const verificationUserPhoneCode = async (req: Request, res: Response) => {
+// /*❌*/ export const verificationUserPhoneCode = async (req: Request, res: Response) => {
 //   try {
 //     const { code, phone_number } = req.body;
 

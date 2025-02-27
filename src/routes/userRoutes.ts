@@ -6,9 +6,8 @@ const router = Router();
 
 router.post("/register", userValidator.validateUserData, UserController.register);
 router.post("/login", userValidator.validateLoginData, UserController.login);
+router.get("/get", UserController.get);
+router.put('/update', userValidator.validateUpdateUserData, UserController.update);
 
-// router.get("/profile/:id", UserController.getUserProfile);
-// router.put("/update/:id", UserController.updateUser);
-// router.delete("/delete/:id", UserController.deleteUser);
 
 export default router;
