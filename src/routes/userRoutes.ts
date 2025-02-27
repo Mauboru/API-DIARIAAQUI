@@ -4,7 +4,7 @@ import { validateUserData } from "../validators/userValidator";
 
 const router = Router();
 
-router.post("/register", validateUserData, UserController.registerUser);
+router.post("/register", validateUserData, UserController.register);
 
 // router.post("/login", UserController.loginUser);
 // router.get("/profile/:id", UserController.getUserProfile);

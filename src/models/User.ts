@@ -8,8 +8,8 @@ export class User extends Model {
   public email!: string;
   public password_hash!: string;
   public phone_number!: string;
-  public cpforCnpj!: string; 
-  public profileImage!: number; 
+  public cpf_or_cnpj!: string; 
+  public profile_image!: number; 
   public verified_phone!: boolean;
   public code_phone!: string;
   public readonly createdAt!: Date;
@@ -52,11 +52,11 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    cpforCnpj: { 
+    cpf_or_cnpj: { 
       type: DataTypes.STRING,
       allowNull: false, 
     },
-    profileImage: {
+    profile_image: {
       type: DataTypes.INTEGER,
       allowNull: false, 
     },

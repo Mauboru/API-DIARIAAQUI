@@ -1,30 +1,34 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
 import bcrypt from 'bcrypt';
+import { sendVerificationCodeService } from '../services/twilioService';
 
-export const registerUser = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, phone_number, cpforCnpj } = req.body;
+    const { name, email, password, phone_number, cpf_or_cnpj } = req.body;
 
-    const existingCpfOrCnpj = await User.findOne({ where: { cpforCnpj } });
-    if (existingCpfOrCnpj) return res.status(400).json({ message: 'Este CPF/CNPJ já está registrado.' });
+    const existing_cpf_or_cnpj = await User.findOne({ where: { cpf_or_cnpj } });
+    if (existing_cpf_or_cnpj) return res.status(400).json({ message: 'Este CPF/CNPJ já está registrado.' });
 
-    const existingEmail = await User.findOne({ where: { email } });
-    if (existingEmail) return res.status(400).json({ message: 'Este e-mail já está registrado.' });
+    const existing_email = await User.findOne({ where: { email } });
+    if (existing_email) return res.status(400).json({ message: 'Este e-mail já está registrado.' });
 
-    const existingPhoneNumber = await User.findOne({ where: { phone_number } });
-    if (existingPhoneNumber) return res.status(400).json({ message: 'Este número já está registrado.' });
+    const existing_phone_number = await User.findOne({ where: { phone_number } });
+    if (existing_phone_number) return res.status(400).json({ message: 'Este número já está registrado.' });
 
     const password_hash = await bcrypt.hash(password, 10);
-    const randomImageIndex = Math.floor(Math.random() * 10) + 1;
+    const random_image_index = Math.floor(Math.random() * 10) + 1;
+
+    const { code: phone_code } = await sendVerificationCodeService(phone_number);
 
     await User.create({
       name,
       email,
       password_hash,
       phone_number,
-      cpforCnpj,
-      profileImage: randomImageIndex,
+      code_phone: phone_code,
+      cpf_or_cnpj,
+      profile_image: random_image_index,
     });
 
     return res.status(201).json({ message: 'Usuário criado com sucesso.' });

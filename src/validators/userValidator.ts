@@ -3,13 +3,13 @@ import { cpf, cnpj } from 'cpf-cnpj-validator';
 import { parsePhoneNumber } from 'libphonenumber-js';
 
 export const validateUserData = (req: Request, res: Response, next: NextFunction) => {
-  const { name, email, password, phone_number, cpforCnpj } = req.body;
+  const { name, email, password, phone_number, cpf_or_cnpj } = req.body;
 
-  if (!name || !email || !password || !cpforCnpj || !phone_number) {
+  if (!name || !email || !password || !cpf_or_cnpj || !phone_number) {
     return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
   }
 
-  if (!(cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj))) {
+  if (!(cpf.isValid(cpf_or_cnpj) || cnpj.isValid(cpf_or_cnpj))) {
     return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
   }
 
@@ -31,6 +31,5 @@ export const validateUserData = (req: Request, res: Response, next: NextFunction
   if (!passwordPattern.test(password)) {
     return res.status(400).json({ message: 'Senha muito fraca! A senha deve ter entre 8 e 20 caracteres, incluir letras maiúsculas e minúsculas, um número e um caractere especial.' });
   }
-
   next();
 };

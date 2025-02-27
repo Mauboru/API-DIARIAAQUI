@@ -26,12 +26,12 @@ module.exports = {
         type: Sequelize.STRING(20),
         allowNull: false,
       },
-      cpfOrCnpj: {
+      cpf_or_cnpj: {
         type: Sequelize.STRING(255),
         allowNull: false,
         unique: true
       },
-      profileImage: {
+      profile_image: {
         type: Sequelize.INTEGER,
         allowNull: true
       },
