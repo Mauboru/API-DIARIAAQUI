@@ -1,19 +1,10 @@
 import { Router } from "express";
-import * as UserController from "../controllers/userController";
-import * as ServiceController from "../controllers/serviceController";
+import userRoutes from "./userRoutes";
+// import serviceRoutes from "./serviceRoutes";
+
 const router = Router();
 
-router.post("/login", UserController.login); 
-router.post("/registerUser", UserController.registerUser); 
-router.put("/updateUser", UserController.updateUser); 
-
-router.post("/verificationUserPhoneCode", UserController.verificationUserPhoneCode); 
-router.post("/sendVerificationCodeAPI", UserController.sendVerificationCodeAPI); 
-
-router.get("/users", UserController.getUserData); 
-router.put("/updatePassword", UserController.updatePassword); 
-
-router.post("/registerService", ServiceController.registerService); 
-router.get("/getService", ServiceController.getService); 
+router.use("/users", userRoutes);
+// router.use("/services", serviceRoutes);
 
 export default router;
