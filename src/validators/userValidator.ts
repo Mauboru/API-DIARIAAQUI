@@ -33,3 +33,21 @@ export const validateUserData = (req: Request, res: Response, next: NextFunction
   }
   next();
 };
+
+export const validateLoginData = (req: Request, res: Response, next: NextFunction) => {
+  const { cpf_or_cnpj_or_email, password } = req.body;
+
+  if (!cpf_or_cnpj_or_email || !password) {
+    return res.status(400).json({ message: 'CPF/CNPJ, email e senha são obrigatórios.' });
+  }
+
+  if (typeof cpf_or_cnpj_or_email !== 'string' || cpf_or_cnpj_or_email.trim() === '') {
+    return res.status(400).json({ message: 'CPF/CNPJ ou eamil inválido.' });
+  }
+
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ message: 'Senha inválida. A senha deve ter pelo menos 8 caracteres.' });
+  }
+
+  next();
+};

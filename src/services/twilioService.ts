@@ -1,6 +1,5 @@
 import twilio from 'twilio';
 import dotenv from 'dotenv';
-import { User } from '../models/User';
 
 dotenv.config();
 

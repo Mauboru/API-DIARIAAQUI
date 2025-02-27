@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { User } from '../models/User';
 import bcrypt from 'bcrypt';
 import { sendVerificationCodeService } from '../services/twilioService';
+import { Op } from 'sequelize';
+import { generateToken } from '../services/authService';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -38,47 +40,41 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-// export const login = async (req: Request, res: Response) => {
-//   try {
-//     const { cpfOrCnpjOrName, password } = req.body;
+export const deactivate = async (req: Request, res: Response) => {
+};
 
-//     if (!cpfOrCnpjOrName || !password) {
-//       return res.status(400).json({ message: 'Email/Usuario e senha são obrigatórios.' });
-//     }
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { cpf_or_cnpj_or_email, password } = req.body;
 
-//     const user = await User.findOne({ 
-//       where: { 
-//         [Op.or]: [{ cpfOrCnpj: cpfOrCnpjOrName }, { name: cpfOrCnpjOrName }] 
-//       }
-//     });
+    const user = await User.findOne({ 
+      where: { 
+        [Op.or]: [{ cpf_or_cnpj: cpf_or_cnpj_or_email }, { email: cpf_or_cnpj_or_email }] 
+      }
+    });
 
-//     if (!user) {
-//       return res.status(404).json({ message: 'Usuário não encontrado.' });
-//     }
+    if (!user) {
+      return res.status(401).json({ message: 'Credenciais inválidas.' });
+    }
 
-//     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Credenciais inválidas.' });
+    }
 
-//     if (!isPasswordValid) {
-//       return res.status(404).json({ message: 'Senha incorreta.' });
-//     }
+    const token = generateToken({ id: user.id, email: user.email });
 
-//     const token = jwt.sign(
-//       { id: user.id, email: user.email },
-//       'sua_chave_secreta',
-//       { expiresIn: '30d' }
-//     );
-
-//     return res.status(200).json({
-//       message: 'Login bem-sucedido.',
-//       token: token,
-//       user: { id: user.id, name: user.name, email: user.email },
-//       // Ver exatamente o que deve ser retornado para o front
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// };
-
+    return res.status(200).json({
+      message: 'Login bem-sucedido.',
+      token,
+      user: { id: user.id, name: user.name, email: user.email }
+    });
+    
+  } catch (error) {
+    console.error('Erro ao fazer login:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
 
 // export const getUserData = async (req: Request, res: Response) => {
 //   try {
