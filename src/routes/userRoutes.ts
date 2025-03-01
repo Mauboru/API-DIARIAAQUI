@@ -8,6 +8,7 @@ router.post("/register", userValidator.validateUserData, UserController.register
 router.post("/login", userValidator.validateLoginData, UserController.login);
 router.get("/get", UserController.get);
 router.put('/update', userValidator.validateUpdateUserData, UserController.update);
+router.put('/updatePassword', UserController.updatePassword);
 
 
 export default router;

@@ -146,59 +146,55 @@ import { generateToken, verifyToken } from '../services/authService';
   }
 };
 
-// /*❌*/ export const updatePassword = async (req: Request, res: Response) => {
-//   try {
-//     const token = req.headers.authorization?.split(' ')[1];
-//     if (!token) {
-//       return res.status(401).json({ message: 'Token ausente.' });
-//     }
+/*✅*/ export const updatePassword = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ message: 'Token ausente.' });
 
-//     const decoded: any = jwt.verify(token, 'sua_chave_secreta');
-//     const userId = decoded.id;
+    const decoded = verifyToken(token);
+    if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
 
-//     const user = await User.findByPk(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: 'Usuário não encontrado.' });
-//     }
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-//     const { old_password, new_password } = req.body;
+    const { old_password, new_password } = req.body;
 
-//     const isMatch = await bcrypt.compare(old_password, user.password_hash);
-//     if (!isMatch) {
-//       return res.status(400).json({ message: 'Senha antiga incorreta.' });
-//     }
+    const isMatch = await bcrypt.compare(old_password, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Senha antiga incorreta.' });
+    }
 
-//     const newPasswordHash = await bcrypt.hash(new_password, 10);
-//     user.password_hash = newPasswordHash;
-//     await user.save();
+    const newPasswordHash = await bcrypt.hash(new_password, 10);
+    user.password_hash = newPasswordHash;
+    await user.save();
 
-//     return res.status(200).json({
-//       message: 'Senha atualizada com sucesso.'
-//     });
-//   } catch (error) {
-//     console.error('Erro ao atualizar senha:', error);
-//     return res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// };
+    return res.status(200).json({
+      message: 'Senha atualizada com sucesso.'
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar senha:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
 
-// /*❌*/ export const verificationUserPhoneCode = async (req: Request, res: Response) => {
-//   try {
-//     const { code, phone_number } = req.body;
+/*❌*/ export const verificationUserPhoneCode = async (req: Request, res: Response) => {
+  try {
+    const { code, phone_number } = req.body;
 
-//     if (!code || !phone_number) {
-//       return res.status(400).json({ message: 'Código e número de telefone são obrigatórios.' });
-//     }
+    if (!code || !phone_number) {
+      return res.status(400).json({ message: 'Código e número de telefone são obrigatórios.' });
+    }
 
-//     const user = await User.findOne({ where: { phone_number } });
-//     if (!user) return res.status(404).json({ message: 'Usuário não encontrado com esse número de telefone.' });
-//     if (user.code_phone !== code) return res.status(400).json({ message: 'Código de verificação incorreto.' });
+    const user = await User.findOne({ where: { phone_number } });
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado com esse número de telefone.' });
+    if (user.code_phone !== code) return res.status(400).json({ message: 'Código de verificação incorreto.' });
 
-//     user.verified_phone = true;
-//     await user.save();
+    user.verified_phone = true;
+    await user.save();
 
-//     return res.status(201).json({ message: 'Telefone verificado com sucesso.' });
-//   } catch (error) {
-//     console.error('Erro ao verificar código do telefone:', error);
-//     return res.status(500).json({ message: 'Erro interno do servidor.' });
-//   }
-// };
+    return res.status(201).json({ message: 'Telefone verificado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao verificar código do telefone:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
