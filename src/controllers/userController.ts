@@ -5,7 +5,7 @@ import { sendVerificationCodeService } from '../services/twilioService';
 import { Op } from 'sequelize';
 import { generateToken, verifyToken } from '../services/authService';
 
-/*✅*/ export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password, phone_number, cpf_or_cnpj } = req.body;
 
@@ -40,21 +40,34 @@ import { generateToken, verifyToken } from '../services/authService';
   }
 };
 
-/*❌*/ export const deactivate = async (req: Request, res: Response) => {
+export const deactivate = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado!' });
+
+    await user.destroy();
+
+    return res.status(200).json({ message: 'Usuário desativado com sucesso.' });   
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-/*✅*/ export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   try {
     const { cpf_or_cnpj_or_email, password } = req.body;
 
     const user = await User.findOne({ 
       where: { 
-        [Op.or]: [{ cpf_or_cnpj: cpf_or_cnpj_or_email }, { email: cpf_or_cnpj_or_email }] 
+        [Op.or]: [{ cpf_or_cnpj: cpf_or_cnpj_or_email }, { email: cpf_or_cnpj_or_email }],
+        deletedAt: null
       }
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'Credenciais inválidas.' });
+      return res.status(401).json({ message: 'Credenciais inválidas ou usuário desativado.' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -76,7 +89,7 @@ import { generateToken, verifyToken } from '../services/authService';
   }
 };
 
-/*✅*/ export const get = async (req: Request, res: Response) => {
+export const get = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -99,10 +112,21 @@ import { generateToken, verifyToken } from '../services/authService';
   }
 };
 
-/*❌*/ export const getById = async (req: Request, res: Response) => {
+export const getById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; 
+    const user = await User.findByPk(id, { paranoid: false });
+
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado!' });
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Erro ao buscar o usuário.' });
+  }
 };
 
-/*✅*/ export const update = async (req: Request, res: Response) => {
+export const update = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -146,7 +170,7 @@ import { generateToken, verifyToken } from '../services/authService';
   }
 };
 
-/*✅*/ export const updatePassword = async (req: Request, res: Response) => {
+export const updatePassword = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });

@@ -14,6 +14,7 @@ export class User extends Model {
   public code_phone!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  public readonly deletedAt!: Date | null;
 
   public static hashPassword(password: string): string {
     return bcrypt.hashSync(password, 10);
@@ -68,11 +69,12 @@ User.init(
     code_phone: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
+    }
   },
   {
     sequelize,
     tableName: 'da_users',
     timestamps: true,
+    paranoid: true,
   }
 );
