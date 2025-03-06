@@ -139,6 +139,13 @@ export const update = async (req: Request, res: Response) => {
 
     const { name, email, phone_number, cpf_or_cnpj } = req.body;
 
+    const isPhoneModified = user.phone_number !== phone_number;
+    let verified_phone = user.verified_phone;
+    if (isPhoneModified && verified_phone === true) {
+      verified_phone = false;
+    }
+    await user.update({ verified_phone });
+
     if (cpf_or_cnpj && cpf_or_cnpj !== user.cpf_or_cnpj) {
       const existingCpfOrCnpj = await User.findOne({ where: { cpf_or_cnpj } });
       if (existingCpfOrCnpj) {
