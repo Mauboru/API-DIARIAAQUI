@@ -12,4 +12,7 @@ router.put('/update', userValidator.validateUpdateUserData, UserController.updat
 router.put('/updatePassword', UserController.updatePassword);
 router.patch('/deactivate/:id', UserController.deactivate);
 
+router.post('/verificationUserPhoneCode', UserController.verificationUserPhoneCode);
+router.post('/resendVerificationCodeService', UserController.resendVerificationCodeService);
+
 export default router;

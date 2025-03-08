@@ -1,21 +1,18 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 import { Service } from '../models/Service';
+import { verifyToken } from '../services/authService';
 
 export const registerService = async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: 'Token ausente.' });
-        }
+        if (!token) return res.status(401).json({ message: 'Token ausente.' });
 
-        const decoded: any = jwt.verify(token, 'sua_chave_secreta');
+        const decoded = verifyToken(token);
+        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
+
         const user = await User.findByPk(decoded.id);
-    
-        if (!user) {
-            return res.status(404).json({ message: 'Usuário não encontrado.' });
-        }
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
         const { title, description, location, date_initial, date_final, pay, status } =  req.body;
 

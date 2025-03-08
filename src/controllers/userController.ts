@@ -208,7 +208,7 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-/*❌*/ export const verificationUserPhoneCode = async (req: Request, res: Response) => {
+export const verificationUserPhoneCode = async (req: Request, res: Response) => {
   try {
     const { code, phone_number } = req.body;
 
@@ -218,8 +218,8 @@ export const updatePassword = async (req: Request, res: Response) => {
 
     const user = await User.findOne({ where: { phone_number } });
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado com esse número de telefone.' });
+    
     if (user.code_phone !== code) return res.status(400).json({ message: 'Código de verificação incorreto.' });
-
     user.verified_phone = true;
     await user.save();
 
@@ -229,3 +229,18 @@ export const updatePassword = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
+
+export const resendVerificationCodeService = async (req: Request, res: Response) => {
+  try {
+    const { phone_number } = req.body;
+    const { code: phone_code } = await sendVerificationCodeService(phone_number);
+
+    const user = await User.findOne({ where: { phone_number } });
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado com esse número de telefone.' });
+
+    await user.update({ code_phone: phone_code });
+    return res.status(200).json({ message: 'Código reenviado com sucesso.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+}
