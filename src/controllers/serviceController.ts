@@ -20,14 +20,14 @@ export const registerService = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
         }
 
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
         function isValidDate(dateString: string): boolean {
             if (!dateRegex.test(dateString)) return false;
             const date = new Date(dateString);
             return !isNaN(date.getTime());
         }
         if (!isValidDate(date_initial) || !isValidDate(date_final)) {
-            return res.status(400).json({ message: 'Formato de data inválido ou data inexistente. Use YYYY-MM-DD.' });
+            return res.status(400).json({ message: 'Formato de data inválido ou data inexistente. Use DD-MM-YYYY.' });
         }
 
         const paymentValue = parseFloat(pay.toString().replace(',', '.'));
