@@ -21,14 +21,11 @@ export const register = async (req: Request, res: Response) => {
     const password_hash = await bcrypt.hash(password, 10);
     const random_image_index = Math.floor(Math.random() * 10) + 1;
 
-    const { code: phone_code } = await sendVerificationCodeService(phone_number);
-
     await User.create({
       name,
       email,
       password_hash,
       phone_number,
-      code_phone: phone_code,
       cpf_or_cnpj,
       profile_image: random_image_index,
     });
