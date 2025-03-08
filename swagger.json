@@ -1,0 +1,833 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "API-CARGOSNAP-PORTINSPECT",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/files": {
+      "get": {
+        "summary": "Busca arquivos do Cargosnap",
+        "description": "Essa rota permite buscar arquivos utilizando diversos filtros opcionais.",
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "query",
+            "description": "Filtrar pelo código de referência do arquivo",
+            "schema": {
+              "type": "string",
+              "example": "12345ABC"
+            }
+          },
+          {
+            "name": "find",
+            "in": "query",
+            "description": "Texto para busca livre",
+            "schema": {
+              "type": "string",
+              "example": "inspeção"
+            }
+          },
+          {
+            "name": "closed",
+            "in": "query",
+            "description": "Filtrar arquivos fechados (true ou false)",
+            "schema": {
+              "type": "boolean",
+              "example": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de arquivos encontrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "example": 12987286
+                      },
+                      "reference": {
+                        "type": "string",
+                        "example": "12345ABC"
+                      },
+                      "closed": {
+                        "type": "boolean",
+                        "example": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria um novo arquivo no Cargosnap",
+        "description": "Essa rota permite criar um arquivo enviando uma referência, um status de fechamento e uma localização opcional.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "12345ABC"
+                  },
+                  "close": {
+                    "type": "boolean",
+                    "example": 0
+                  },
+                  "location": {
+                    "type": "string",
+                    "example": 0
+                  }
+                },
+                "required": ["reference"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Arquivo criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "File was successfully created",
+                    "id": 12987286
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}": {
+      "get": {
+        "summary": "Buscar um arquivo por ID",
+        "description": "Recupera os detalhes de um arquivo específico com base no ID informado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID do arquivo a ser buscado",
+            "schema": {
+              "type": "string",
+              "example": "12987286"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo encontrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 12987286
+                    },
+                    "reference": {
+                      "type": "string",
+                      "example": "12345ABC"
+                    },
+                    "closed": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-03-01T12:34:56Z"
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-03-02T15:20:30Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID não fornecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "O ID do arquivo é obrigatório."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}/close": {
+      "patch": {
+        "summary": "Fechar um arquivo por ID",
+        "description": "Altera o status de um arquivo para fechado com base no ID informado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID do arquivo a ser fechado",
+            "schema": {
+              "type": "string",
+              "example": "12987286"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo fechado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "File was successfully closed"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID não fornecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "O ID do arquivo é obrigatório."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}/delete": {
+      "delete": {
+        "summary": "Deletar um arquivo por ID",
+        "description": "Remove permanentemente um arquivo com base no ID informado.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID do arquivo a ser deletado",
+            "schema": {
+              "type": "string",
+              "example": "12987286"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo deletado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Arquivo deletado com sucesso.",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID não fornecido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "O ID do arquivo é obrigatório."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Arquivo não encontrado ou já deletado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Arquivo não encontrado ou já deletado."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uploads": {
+      "post": {
+        "summary": "Fazer upload de arquivos",
+        "description": "Faz o upload de arquivos para o sistema Cargosnap, associando-os a uma referência e outras informações opcionais.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "12345ABC"
+                  },
+                  "include_in_share": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "location": {
+                    "type": "string",
+                    "example": "Warehouse A"
+                  },
+                  "uploads": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Arquivos a serem enviados"
+                  }
+                },
+                "required": ["reference", "uploads"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Arquivos enviados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "Files uploaded successfully",
+                    "data": { "id": 12987286 }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos ou falta de arquivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "failed",
+                    "status": "Invalid reference provided"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "failed",
+                    "status": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fields/{reference}": {
+      "post": {
+        "summary": "Definir campos para um arquivo",
+        "description": "Associa um conjunto de campos a um arquivo identificado pela referência informada.",
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "description": "Referência do arquivo para o qual os campos serão atribuídos",
+            "schema": {
+              "type": "string",
+              "example": "12345ABC"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "example": "field1"
+                    },
+                    "description": "Campos a serem associados ao arquivo"
+                  }
+                },
+                "required": ["fields"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Campos definidos com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "Fields successfully set"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Referência ou campos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "O campo referência é obrigatório."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports": {
+      "post": {
+        "summary": "Gerar relatório de arquivos",
+        "description": "Gera um relatório para os arquivos fornecidos, podendo incluir parâmetros adicionais como modelo, nome do arquivo e configurações.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "example": "file1"
+                    },
+                    "description": "Lista de arquivos a serem incluídos no relatório"
+                  },
+                  "template": {
+                    "type": "string",
+                    "example": "template1",
+                    "description": "Modelo do relatório a ser gerado"
+                  },
+                  "filename": {
+                    "type": "string",
+                    "example": "relatorio_arquivo",
+                    "description": "Nome do arquivo gerado"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "description": "Configurações adicionais para o relatório"
+                  },
+                  "asynchronous": {
+                    "type": "boolean",
+                    "description": "Indica se a geração do relatório deve ser feita de forma assíncrona"
+                  }
+                },
+                "required": ["files"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Relatório gerado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "Report generated successfully",
+                    "data": {
+                      "report_id": 12345
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campos inválidos ou ausentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "O campo 'files' é obrigatório e deve ser um array!"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Erro interno no servidor"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/share": {
+      "get": {
+        "summary": "Compartilhar arquivos",
+        "description": "Compartilha um arquivo identificado pela referência, com opções adicionais como data de expiração, idioma e envio de email.",
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "query",
+            "required": true,
+            "description": "Referência do arquivo a ser compartilhado",
+            "schema": {
+              "type": "string",
+              "example": "12345ABC"
+            }
+          },
+          {
+            "name": "expires",
+            "in": "query",
+            "required": false,
+            "description": "Data e hora de expiração do link de compartilhamento",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2025-12-31T23:59:59Z"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "description": "Idioma para o compartilhamento",
+            "schema": {
+              "type": "string",
+              "example": "pt"
+            }
+          },
+          {
+            "name": "dl",
+            "in": "query",
+            "required": false,
+            "description": "Indica se o link de compartilhamento será para download (true/false)",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "example": "true"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "description": "Email para o qual o link de compartilhamento será enviado",
+            "schema": {
+              "type": "string",
+              "example": "user@example.com"
+            }
+          },
+          {
+            "name": "send_email",
+            "in": "query",
+            "required": false,
+            "description": "Indica se o email de compartilhamento será enviado",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"],
+              "example": "true"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo compartilhado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "File shared successfully",
+                    "link": "https://example.com/shared-file"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campos inválidos ou ausentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "O campo reference é obrigatório!"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forms/{id}": {
+      "get": {
+        "summary": "Buscar formulário por ID",
+        "description": "Recupera as informações de um formulário identificado pelo ID, com a possibilidade de aplicar filtros como referência, datas e limite de resultados.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID do formulário a ser buscado",
+            "schema": {
+              "type": "integer",
+              "example": 12345
+            }
+          },
+          {
+            "name": "reference",
+            "in": "query",
+            "required": false,
+            "description": "Referência do arquivo associado ao formulário",
+            "schema": {
+              "type": "string",
+              "example": "ABC123"
+            }
+          },
+          {
+            "name": "startdate",
+            "in": "query",
+            "required": false,
+            "description": "Data de início para filtrar os formulários",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-01-01"
+            }
+          },
+          {
+            "name": "enddate",
+            "in": "query",
+            "required": false,
+            "description": "Data de término para filtrar os formulários",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-12-31"
+            }
+          },
+          {
+            "name": "updated_start",
+            "in": "query",
+            "required": false,
+            "description": "Data de início para filtrar por data de atualização",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-01-01"
+            }
+          },
+          {
+            "name": "updated_end",
+            "in": "query",
+            "required": false,
+            "description": "Data de término para filtrar por data de atualização",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2025-12-31"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Número máximo de resultados a retornar",
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Formulário encontrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "response": "success",
+                    "status": "Form found successfully",
+                    "data": {
+                      "id": 12345,
+                      "reference": "ABC123",
+                      "startdate": "2025-01-01",
+                      "enddate": "2025-12-31"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido ou parâmetros de consulta inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "O ID do formulário é obrigatório e deve ser um número válido."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "error": "Erro interno do servidor ao buscar o formulário."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
