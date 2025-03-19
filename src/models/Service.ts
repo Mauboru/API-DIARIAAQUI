@@ -60,3 +60,5 @@ Service.init(
 );
 
 Service.belongsTo(User, { foreignKey: 'employer_id', as: 'employer' });
+import { Application } from './Application';
+Service.hasMany(Application, { foreignKey: 'service_id', as: 'applications' });
