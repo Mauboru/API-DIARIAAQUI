@@ -3,6 +3,8 @@ import { User } from '../models/User';
 import { Service } from '../models/Service';
 import { Application } from '../models/Application';
 import { verifyToken } from '../services/authService';
+import { Op } from 'sequelize';
+import sequelize from 'sequelize';
 
 export const registerService = async (req: Request, res: Response) => {
     try {
@@ -80,7 +82,7 @@ export const getService = async (req: Request, res: Response) => {
     }
 };
 
-export const getSubscriptionByUser = async (req: Request, res: Response) => {
+export const getSubscribedService = async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -91,31 +93,68 @@ export const getSubscriptionByUser = async (req: Request, res: Response) => {
         const user = await User.findByPk(decoded.id);
         if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-        const subscriptions = await Application.findAll({
-            where: { worker_id: user.id }, 
+        const subscribedServices = await Service.findAll({
             include: [
                 {
-                    model: Service,
-                    as: 'service',
-                    attributes: ['id', 'title', 'description', 'status', 'pay'],
-                    include: [
-                        {
-                            model: User,
-                            as: 'employer',
-                            attributes: ['id', 'name']
-                        }
-                    ]
+                    model: Application,
+                    as: 'applications',
+                    where: { worker_id: user.id },
+                    attributes: [], 
+                },
+                {
+                    model: User,
+                    as: 'employer',
+                    attributes: ['id', 'name']
                 }
-            ]
+            ],
+            attributes: ['id', 'title', 'description', 'status', 'pay']
         });
 
-        if (!subscriptions || subscriptions.length === 0) {
+        if (!subscribedServices || subscribedServices.length === 0) {
             return res.status(404).json({ message: 'Nenhuma inscrição encontrada.' });
         }
 
-        return res.status(200).json({ subscriptions });
+        return res.status(200).json({ services: subscribedServices });
     } catch (error) {
-        console.error('Erro ao buscar inscrições', error);
+        console.error('Erro ao buscar inscrições:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+};
+
+export const getUnsubscribedService = async (req: Request, res: Response) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: 'Token ausente.' });
+
+        const decoded = verifyToken(token);
+        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
+
+        const user = await User.findByPk(decoded.id);
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+        const unsubscribedServices = await Service.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: sequelize.literal(`(SELECT service_id FROM da_applications WHERE worker_id = ${user.id})`)
+                }
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'employer',
+                    attributes: ['id', 'name']
+                }
+            ],
+            attributes: ['id', 'title', 'description', 'status', 'pay']
+        });
+
+        if (!unsubscribedServices || unsubscribedServices.length === 0) {
+            return res.status(404).json({ message: 'Você já está inscrito em todos os serviços disponíveis.' });
+        }
+
+        return res.status(200).json({ services: unsubscribedServices });
+    } catch (error) {
+        console.error('Erro ao buscar serviços não inscritos:', error);
         return res.status(500).json({ message: 'Erro interno do servidor.' });
     }
 };
