@@ -82,83 +82,6 @@ export const getService = async (req: Request, res: Response) => {
     }
 };
 
-export const getSubscribedService = async (req: Request, res: Response) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ message: 'Token ausente.' });
-
-        const decoded = verifyToken(token);
-        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
-
-        const user = await User.findByPk(decoded.id);
-        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
-
-        const subscribedServices = await Service.findAll({
-            include: [
-                {
-                    model: Application,
-                    as: 'applications',
-                    where: { worker_id: user.id },
-                    attributes: [], 
-                },
-                {
-                    model: User,
-                    as: 'employer',
-                    attributes: ['id', 'name']
-                }
-            ],
-            attributes: ['id', 'title', 'description', 'status', 'pay']
-        });
-
-        if (!subscribedServices || subscribedServices.length === 0) {
-            return res.status(404).json({ message: 'Nenhuma inscrição encontrada.' });
-        }
-
-        return res.status(200).json({ services: subscribedServices });
-    } catch (error) {
-        console.error('Erro ao buscar inscrições:', error);
-        return res.status(500).json({ message: 'Erro interno do servidor.' });
-    }
-};
-
-export const getUnsubscribedService = async (req: Request, res: Response) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ message: 'Token ausente.' });
-
-        const decoded = verifyToken(token);
-        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
-
-        const user = await User.findByPk(decoded.id);
-        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
-
-        const unsubscribedServices = await Service.findAll({
-            where: {
-                id: {
-                    [Op.notIn]: sequelize.literal(`(SELECT service_id FROM da_applications WHERE worker_id = ${user.id})`)
-                }
-            },
-            include: [
-                {
-                    model: User,
-                    as: 'employer',
-                    attributes: ['id', 'name']
-                }
-            ],
-            attributes: ['id', 'title', 'description', 'status', 'pay']
-        });
-
-        if (!unsubscribedServices || unsubscribedServices.length === 0) {
-            return res.status(404).json({ message: 'Você já está inscrito em todos os serviços disponíveis.' });
-        }
-
-        return res.status(200).json({ services: unsubscribedServices });
-    } catch (error) {
-        console.error('Erro ao buscar serviços não inscritos:', error);
-        return res.status(500).json({ message: 'Erro interno do servidor.' });
-    }
-};
-
 export const subscribe = async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
@@ -218,3 +141,118 @@ export const unsubscribe = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Erro interno do servidor.' })
     }
 }
+
+// Essas rotas provavelmente deveriam ser do usuario, eu acho
+export const getSubscribedService = async (req: Request, res: Response) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: 'Token ausente.' });
+
+        const decoded = verifyToken(token);
+        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
+
+        const user = await User.findByPk(decoded.id);
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+        const subscribedServices = await Service.findAll({
+            include: [
+                {
+                    model: Application,
+                    as: 'applications',
+                    where: { worker_id: user.id },
+                    attributes: ['id'], 
+                },
+                {
+                    model: User,
+                    as: 'employer',
+                    attributes: ['id', 'name']
+                }
+            ],
+            attributes: ['id', 'title', 'description', 'location', 'date_initial', 'date_final', 'status', 'pay']
+        });
+
+        if (!subscribedServices || subscribedServices.length === 0) {
+            return res.status(200).json({ message: 'Nenhuma inscrição encontrada.', services: 0 });
+        }
+
+        return res.status(200).json({ services: subscribedServices });
+    } catch (error) {
+        console.error('Erro ao buscar inscrições:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+};
+
+export const getUnsubscribedService = async (req: Request, res: Response) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: 'Token ausente.' });
+
+        const decoded = verifyToken(token);
+        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
+
+        const user = await User.findByPk(decoded.id);
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+        const unsubscribedServices = await Service.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: sequelize.literal(`(SELECT service_id FROM da_applications WHERE worker_id = ${user.id})`)
+                },
+                employer_id: { [Op.ne]: user.id }
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'employer',
+                    attributes: ['id', 'name']
+                }
+            ],
+            attributes: ['id', 'title', 'description', 'location', 'date_initial', 'date_final', 'status', 'pay']
+        });
+
+        if (!unsubscribedServices || unsubscribedServices.length === 0) {
+            return res.status(200).json({ message: 'Você já está inscrito em todos os serviços disponíveis.', services: 0 });
+        }
+
+        return res.status(200).json({ services: unsubscribedServices });
+    } catch (error) {
+        console.error('Erro ao buscar serviços não inscritos:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+};
+
+export const getMyServices = async (req: Request, res: Response) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: 'Token ausente.' });
+
+        const decoded = verifyToken(token);
+        if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
+
+        const user = await User.findByPk(decoded.id);
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
+        const myServices = await Service.findAll({
+            where: {
+                employer_id: user.id 
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'employer',
+                    attributes: ['id', 'name']
+                }
+            ],
+            attributes: ['id', 'title', 'description', 'location', 'date_initial', 'date_final', 'status', 'pay']
+        });
+
+        if (!myServices || myServices.length === 0) {
+            return res.status(200).json({ message: 'Você não criou nenhum serviço.', services: [] });
+        }
+
+        return res.status(200).json({ services: myServices });
+    } catch (error) {
+        console.error('Erro ao buscar serviços do usuário:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
+    }
+};
