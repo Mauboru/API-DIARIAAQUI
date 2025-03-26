@@ -4,15 +4,15 @@ import * as userValidator from "../validators/userValidator";
 
 const router = Router();
 
-router.post("/register", userValidator.validateUserData, UserController.register);
+router.post("/registerUser", userValidator.validateUserData, UserController.registerUser);
 router.post("/login", userValidator.validateLoginData, UserController.login);
-router.get("/get", UserController.get);
-router.get("/get/:id", UserController.getById);
-router.put('/update', userValidator.validateUpdateUserData, UserController.update);
-router.put('/updatePassword', UserController.updatePassword);
-router.patch('/deactivate/:id', UserController.deactivate);
+router.get("/getAllUser", UserController.getAllUser);
+router.get("/getUserById/:id", UserController.getUserById);
+router.put('/updateUser', userValidator.validateUpdateUserData, UserController.updateUser);
+router.put('/updateUserPassword', UserController.updateUserPassword);
+router.patch('/deactivateUser/:id', UserController.deactivateUser);
 
 router.post('/verificationUserPhoneCode', UserController.verificationUserPhoneCode);
-router.post('/resendVerificationCodeService', UserController.resendVerificationCodeService);
+router.post('/resendUserVerificationCodeService', UserController.resendUserVerificationCodeService);
 
 export default router;

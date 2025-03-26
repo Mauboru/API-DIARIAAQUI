@@ -5,7 +5,7 @@ import { sendVerificationCodeService } from '../services/twilioService';
 import { Op } from 'sequelize';
 import { generateToken, verifyToken } from '../services/authService';
 
-export const register = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password, phone_number, cpf_or_cnpj } = req.body;
 
@@ -37,7 +37,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const deactivate = async (req: Request, res: Response) => {
+export const deactivateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const user = await User.findByPk(id);
@@ -86,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const get = async (req: Request, res: Response) => {
+export const getAllUser = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -109,7 +109,7 @@ export const get = async (req: Request, res: Response) => {
   }
 };
 
-export const getById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; 
     const user = await User.findByPk(id, { paranoid: false });
@@ -123,7 +123,7 @@ export const getById = async (req: Request, res: Response) => {
   }
 };
 
-export const update = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -174,7 +174,7 @@ export const update = async (req: Request, res: Response) => {
   }
 };
 
-export const updatePassword = async (req: Request, res: Response) => {
+export const updateUserPassword = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ message: 'Token ausente.' });
@@ -227,7 +227,7 @@ export const verificationUserPhoneCode = async (req: Request, res: Response) => 
   }
 };
 
-export const resendVerificationCodeService = async (req: Request, res: Response) => {
+export const resendUserVerificationCodeService = async (req: Request, res: Response) => {
   try {
     const { phone_number } = req.body;
     const { code: phone_code } = await sendVerificationCodeService(phone_number);
