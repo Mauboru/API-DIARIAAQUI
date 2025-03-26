@@ -5,10 +5,12 @@ import { Application } from '../models/Application';
 import { verifyToken } from '../services/authService';
 import { Op } from 'sequelize';
 import sequelize from 'sequelize';
+import { parse, isValid } from 'date-fns';
+import { format } from 'date-fns/format';
 
 export const registerService = async (req: Request, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
+        const token = req.headers.authorization?.split(' ')['1'];
         if (!token) return res.status(401).json({ message: 'Token ausente.' });
 
         const decoded = verifyToken(token);
@@ -17,46 +19,49 @@ export const registerService = async (req: Request, res: Response) => {
         const user = await User.findByPk(decoded.id);
         if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-        const { title, description, location, date_initial, date_final, pay, status } =  req.body;
+        const { title, description, location, date_initial, date_final, pay, status } = req.body;
 
-        if (!title || !description || !location || !date_initial || !date_final || !pay){ 
+        if (!title || !description || !location || !date_initial || !date_final || !pay) { 
             return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
         }
 
-        const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
-        function isValidDate(dateString: string): boolean {
-            if (!dateRegex.test(dateString)) return false;
-            const date = new Date(dateString);
-            return !isNaN(date.getTime());
+        function convertDate(dateString: string): string | null {
+            const parsedDate = parse(dateString, 'dd/MM/yyyy', new Date());
+            return isValid(parsedDate) ? format(parsedDate, 'yyyy-MM-dd') : null;
         }
-        if (!isValidDate(date_initial) || !isValidDate(date_final)) {
-            return res.status(400).json({ message: 'Formato de data inválido ou data inexistente. Use DD-MM-YYYY.' });
+
+        const formattedDateInitial = convertDate(date_initial);
+        const formattedDateFinal = convertDate(date_final);
+
+        if (!formattedDateInitial || !formattedDateFinal) {
+            return res.status(400).json({ message: 'Formato de data inválido. Use DD/MM/YYYY.' });
         }
 
         const paymentValue = parseFloat(pay.toString().replace(',', '.'));
         if (isNaN(paymentValue) || paymentValue <= 0) {
             return res.status(400).json({ message: 'O pagamento deve ser um valor maior que 0.' });
         }
-        
+
         const newService = await Service.create({
             employer_id: user.id,
-            title: title,
-            description: description,
-            location: location,
-            date_initial: date_initial,
-            date_final: date_final,
-            pay: pay,
-            status: status
-        })
+            title,
+            description,
+            location,
+            date_initial: formattedDateInitial,
+            date_final: formattedDateFinal,
+            pay: paymentValue,
+            status
+        });
+
         return res.status(201).json({
             message: 'Serviço criado com sucesso.',
-            service: { id: newService.id, name: newService.title },
+            service: newService
         });
-    } catch (error){
-        console.log("Erro no cadastro de serviço", error);
-        return res.status(500).json({ message: 'Erro interno do servidor.' })
+    } catch (error) {
+        console.error("Erro no cadastro de serviço", error);
+        return res.status(500).json({ message: 'Erro interno do servidor.' });
     }
-}
+};
 
 export const getService = async (req: Request, res: Response) => {
     try {

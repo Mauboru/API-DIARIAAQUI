@@ -3,7 +3,7 @@ import * as ServiceController from "../controllers/serviceController";
 
 const router = Router();
 
-router.post("/register", ServiceController.registerService);
+router.post("/registerService", ServiceController.registerService);
 router.get("/get", ServiceController.getService);
 router.post("/subscribe", ServiceController.subscribe);
 router.delete("/unsubscribe/:id", ServiceController.unsubscribe);
