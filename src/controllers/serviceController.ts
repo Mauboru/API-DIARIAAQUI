@@ -237,23 +237,36 @@ export const getMyServices = async (req: Request, res: Response) => {
         const user = await User.findByPk(decoded.id);
         if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
 
-        const myServices = await Service.findAll({
+        const services = await Service.findAll({
             where: {
                 employer_id: user.id 
             },
+            attributes: ['id', 'title', 'description', 'location', 'date_initial', 'date_final', 'status', 'pay'],
             include: [
                 {
                     model: User,
                     as: 'employer',
                     attributes: ['id', 'name']
+                },
+                {
+                    model: Application, 
+                    as: 'applications',
+                    attributes: ['worker_id']
                 }
-            ],
-            attributes: ['id', 'title', 'description', 'location', 'date_initial', 'date_final', 'status', 'pay']
+            ]
         });
 
-        if (!myServices || myServices.length === 0) {
+        if (!services || services.length === 0) {
             return res.status(200).json({ message: 'Você não criou nenhum serviço.', services: [] });
         }
+
+        const myServices = services.map(service => {
+            const s = service.toJSON();
+            return {
+                ...s,
+                qtdWorkers: s.applications?.length || 0
+            };
+        });
 
         return res.status(200).json({ services: myServices });
     } catch (error) {
