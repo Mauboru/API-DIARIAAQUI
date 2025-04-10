@@ -44,8 +44,8 @@ module.exports = {
         allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM('open', 'in_progress', 'completed'),
-        defaultValue: 'open',
+        type: Sequelize.ENUM('Aberto', 'Andamento', 'Concluido'),
+        defaultValue: 'Aberto',
       },
       createdAt: {
         type: Sequelize.DATE,

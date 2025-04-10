@@ -89,7 +89,7 @@ export const login = async (req: Request, res: Response) => {
 export const getAllUser = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'Token ausente.' });
+    if (!token) return res.status(401).json({ message: 'Autenticacao nao permitida' });
 
     const decoded = verifyToken(token);
     if (!decoded) return res.status(401).json({ message: 'Token inválido.' });
