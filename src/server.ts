@@ -34,7 +34,7 @@ app.get("/", (req: Request, res: Response) => {
   getRoutesFromStack(app._router.stack);
 
   res.json({
-    status: "API-DIARIAAQUI",
+    status: "API-DIARIAAQssssUI",
     uptime: `${hours}h ${minutes}m ${seconds}s`,
     timestamp: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
     developed: "Josue Henrique",
